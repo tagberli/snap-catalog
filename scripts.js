@@ -30,11 +30,38 @@ const animeList = [
   {
     title: "Attack on Titan",
     image: "https://cdn.myanimelist.net/images/anime/1517/100633.jpg",
-    gif: "https://media1.tenor.com/m/CYYG2F1rZxcAAAAd/ao-t-attack-on-titan.gif",
+    gif: "https://media1.tenor.com/m/919Uh3CGwzoAAAAd/aot-hange.gif",
     rating: 9.05,
     popularity: 2431574,
     genre: "Action, Drama, Fantasy",
     total_episodes: 94
+  },
+  {
+    title: "Ping Pong the Animation",
+    image: "https://cdn.myanimelist.net/images/anime/1586/146565.jpg",
+    gif: "https://media1.tenor.com/m/dvDPhrJqnDQAAAAd/ping-pong-the-animation-op.gif",
+    rating: 8.62,
+    popularity: 416031,
+    genre: "Award Winning, Drama, Sports",
+    total_episodes: 11
+  },
+  {
+    title: "Violet Evergarden Movie",
+    image: "https://cdn.myanimelist.net/images/anime/1825/110716.jpg",
+    gif: "https://media1.tenor.com/m/VwZhH28s2sAAAAAd/violet-evergarden-anime.gif",
+    rating: 8.85,
+    popularity: 670193,
+    genre: "Award Winning, Drama",
+    total_episodes: 1
+  },
+  {
+    title: "Your Name",
+    image: "https://cdn.myanimelist.net/images/anime/5/87048.jpg",
+    gif: "https://media1.tenor.com/m/7dGpAI5sKzwAAAAd/kimi-no-na-wa-anime.gif",
+    rating: 8.83,
+    popularity: 2884421,
+    genre: "Award Winning, Drama",
+    total_episodes: 1
   },
   {
     title: "Sousou no Frieren",
@@ -45,9 +72,55 @@ const animeList = [
     genre: "Action, Adventure, Shounen",
     total_episodes: 28
   },
+  {
+    title: "Fullmetal Alchemist: Brotherhood",
+    image: "https://cdn.myanimelist.net/images/anime/1208/94745.jpg",
+    gif: "https://media1.tenor.com/m/CiPgIh1Gl8UAAAAd/edward-elric-fma.gif",
+    rating: 9.10,
+    popularity: 3507574,
+    genre: "Action, Adventure, Drama, Fantasy",
+    total_episodes: 64
+  },
+  {
+    title: "Steins;Gate",
+    image: "https://cdn.myanimelist.net/images/anime/1935/127974.jpg",
+    gif: "https://media1.tenor.com/m/5I0RFT2IH9UAAAAC/steins-gate-anime.gif",
+    rating: 9.07,
+    popularity: 2686894,
+    genre: "Drama, Sci-Fi, Suspense, Psychological, Time Travel",
+    total_episodes: 24
+  },
+  {
+    title: "Monster",
+    image: "https://cdn.myanimelist.net/images/anime/10/18793.jpg",
+    gif: "https://media1.tenor.com/m/P-pq7eBvmd4AAAAd/johan-liebert-monster.gif",
+    rating: 8.88,
+    popularity: 1223325,
+    genre: "Drama, Mystery, Suspense, Adult Cast, Psychological, Seinen",
+    total_episodes: 74
+  },
+  {
+    title: "Mob Psycho 100",
+    image: "https://cdn.myanimelist.net/images/anime/8/80356.jpg",
+    gif: "https://media1.tenor.com/m/R_aP7mMCmfMAAAAC/mobpsycho100-anime.gif",
+    rating: 8.49,
+    popularity: 2198548,
+    genre: "Action, Comedy, Supernatural",
+    total_episodes: 12
+  },
+  {
+    title: "Death Note",
+    image: "https://cdn.myanimelist.net/images/anime/1079/138100.jpg",
+    gif: "https://media1.tenor.com/m/DzfDOzNpRb0AAAAd/death-note-light-yagami.gif",
+    rating: 8.62,
+    popularity: 4088267,
+    genre: "Supernatural, Suspense, Psychological",
+    total_episodes: 37
+  },
+  
+  
   // Add more entries as needed
 ];
-
 
 
 
@@ -89,23 +162,32 @@ function removeFromWatchlist(animeTitle) {
   displayList();
 }
 
-function getCurrentList() {
-  return currentList === 'all' ? [...animeList] : [...myWatchlist];
-}
 
 
 
 // SORTING OPERATION
-function sortList(byRating) {
-  const list = getCurrentList();
-
-  if (byRating == true){
-    list.sort((a, b) => b.rating - a.rating);
-  } else{
-    list.sort((a, b) => b.popularity - a.popularity);
-  }
-  displayList(list);
+function getCurrentList() {
+  return currentList === 'all' ? [...animeList] : [...myWatchlist];
 }
+function sortList(byRating) {
+  if (byRating == true){
+    if(currentList === 'all'){
+      animeList.sort((a, b) => b.rating - a.rating);
+    }else{
+      myWatchlist.sort((a, b) => b.rating - a.rating);
+    }
+    
+  } else{
+    if(currentList === 'all'){
+      animeList.sort((a, b) => b.popularity - a.popularity);
+    } else{
+      myWatchlist.sort((a, b) => b.popularity - a.popularity);
+    }
+  }
+  displayList();
+}
+
+
 
 // FILTERING OPERATION
 function filterByGenre(genre) {
@@ -113,6 +195,21 @@ function filterByGenre(genre) {
   const filtered = genre ? list.filter(anime => anime.genre.includes(genre)) : list;
   displayList(filtered);
 }
+
+
+
+// SEARCH OPERATION
+document.getElementById("searchBar").addEventListener("input", () => {
+  const list = getCurrentList();
+  const query = document.getElementById("searchBar").value.toLowerCase();
+  if(query.trim() === ""){
+    displayList();
+  }else{
+    const filtered = list.filter(anime => anime.title.toLowerCase().includes(query));
+    filtered.sort((a, b) => a.title.localeCompate(b.title));
+    displayList(filtered);
+  }
+});
 
 
 

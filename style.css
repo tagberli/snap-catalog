@@ -41,13 +41,13 @@ button:hover, select:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  padding: 20px;
+  padding: 30px;
   gap: 20px;
 }
 
 .anime-card {
   width: 250px;
-  height: 500px;
+  height: auto;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -65,7 +65,7 @@ button:hover, select:hover {
   transition: all 0.3s ease;
 }
 .anime-card:hover {
-  width: 300px;     /* Make the card wider */
+  width: 350px;     /* Make the card wider */
   height: 500px;    /* Optionally make it shorter */
   transform: scale(1.05);  /* Optional slight scale for emphasis */
 }
