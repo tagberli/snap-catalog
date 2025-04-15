@@ -24,8 +24,8 @@
  */
 
 
-// All the data is taken from the popular website named "myanimelist.net"
-// here is the dataset I made myself it is pretty long :(
+// All the data was scraped from "myanimelist.net"
+// here is the dataset, I selected each gif myself, took me a while :(
 const animeList = [
   {
     title: "Attack on Titan",
@@ -123,48 +123,54 @@ const animeList = [
 ];
 
 
+// Global variables to track the current display state
+let myWatchlist = [];       // User's saved watchlist
+let currentList = 'all';    // Tracks whether 'all' or 'watchlist' is being viewed
 
-
-
-// START OF CATALOG OPERATIONS
-let myWatchlist = [];
-let currentList = 'all';
-
-// WATCHLIST OPERATIONS
+// SWITCH BETWEEN CATALOG AND WATCHLIST VIEW
 function switchList(listType) {
   currentList = listType;
 
   const header = document.querySelector("header");
   const pageTitle = document.getElementById("page-title");
 
-  if (listType === 'all') { // all anime list header color
+  // Update UI to reflect selected list
+  if (listType === 'all') {
     pageTitle.innerText = "Anime Catalog";
-    header.style.backgroundColor = "#FFFFFF"; //
+    header.style.backgroundColor = "#FFFFFF";
   } else {
     pageTitle.innerText = "My Watchlist";
     header.style.backgroundColor = "#4A90E2";
   }
 
-  displayList();
+  displayList(); // Refresh view with appropriate data
 }
 
+// ADD ANIME TO WATCHLIST
 function addToWatchlist(animeTitle) {
   const anime = animeList.find(a => a.title === animeTitle);
+
+  // Avoid duplicates
   if (!myWatchlist.some(a => a.title === animeTitle)) {
     myWatchlist.push(anime);
   }
+
   updateCardUI(animeTitle);
 }
 
+// REMOVE ANIME FROM WATCHLIST
 function removeFromWatchlist(animeTitle) {
   myWatchlist = myWatchlist.filter(anime => anime.title !== animeTitle);
-  if(currentList == "all"){ // improved remove logic!
+
+  // If in 'all' view, just update that card; otherwise, re-display list
+  if (currentList === "all") {
     updateCardUI(animeTitle);
     return;
   }
   displayList();
 }
 
+// UPDATE UI FOR A SPECIFIC CARD (button label and event)
 function updateCardUI(animeTitle) {
   const cards = document.querySelectorAll('.anime-card');
   cards.forEach(card => {
@@ -173,6 +179,7 @@ function updateCardUI(animeTitle) {
       const button = card.querySelector('button');
       const inWatchlist = myWatchlist.some(a => a.title === animeTitle);
 
+      // Update button appearance and behavior
       button.innerText = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
       button.className = inWatchlist ? 'remove' : '';
       button.onclick = () => {
@@ -182,43 +189,31 @@ function updateCardUI(animeTitle) {
   });
 }
 
-
-
-// SORTING OPERATION
+// RETURN CURRENTLY VISIBLE LIST (either full catalog or watchlist)
 function getCurrentList() {
   return currentList === 'all' ? [...animeList] : [...myWatchlist];
 }
+
+// SORT THE LIST BASED ON RATING OR POPULARITY
 function sortList(byRating) {
-  if (byRating == true){
-    if(currentList === 'all'){
-      animeList.sort((a, b) => b.rating - a.rating);
-    }else{
-      myWatchlist.sort((a, b) => b.rating - a.rating);
-    }
-    
-  } else{
-    if(currentList === 'all'){
-      animeList.sort((a, b) => b.popularity - a.popularity);
-    } else{
-      myWatchlist.sort((a, b) => b.popularity - a.popularity);
-    }
+  if (byRating) {
+    // Sort by rating, descending
+    (currentList === 'all' ? animeList : myWatchlist).sort((a, b) => b.rating - a.rating);
+  } else {
+    // Sort by popularity, descending
+    (currentList === 'all' ? animeList : myWatchlist).sort((a, b) => b.popularity - a.popularity);
   }
   displayList();
 }
 
-
-
-// FILTERING OPERATION
+// FILTER LIST BY GENRE (case-sensitive includes match)
 function filterByGenre(genre) {
   const list = getCurrentList();
   const filtered = genre ? list.filter(anime => anime.genre.includes(genre)) : list;
   displayList(filtered);
 }
 
-
-
-// SEARCH OPERATION
-// improved the search function by splitting the title check each word for partial matches
+// SEARCH BAR LISTENER FOR TITLE MATCHES
 document.getElementById("searchBar").addEventListener("input", () => {
   const list = getCurrentList();
   const query = document.getElementById("searchBar").value.toLowerCase().trim();
@@ -226,20 +221,19 @@ document.getElementById("searchBar").addEventListener("input", () => {
   if (query === "") {
     displayList();
   } else {
+    // Allow partial word matching in title
     const filtered = list.filter(anime => {
-      const words = anime.title.toLowerCase().split(/\s+/); // split by spaces
+      const words = anime.title.toLowerCase().split(/\s+/);
       return words.some(word => word.includes(query));
     });
 
+    // Sort results alphabetically by title
     filtered.sort((a, b) => a.title.localeCompare(b.title));
     displayList(filtered);
   }
 });
 
-
-
-
-// DISPLAY HELPER FUNCTIONS
+// CREATE A CARD ELEMENT FOR EACH ANIME
 function createAnimeCard(anime) {
   const card = document.createElement('div');
   card.className = 'anime-card';
@@ -250,6 +244,7 @@ function createAnimeCard(anime) {
   button.innerText = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
   button.onclick = () => inWatchlist ? removeFromWatchlist(anime.title) : addToWatchlist(anime.title);
 
+  // Image with hover effect to show animated gif
   const img = document.createElement('img');
   img.src = anime.image;
   img.alt = anime.title;
@@ -257,6 +252,7 @@ function createAnimeCard(anime) {
   card.addEventListener('mouseenter', () => { img.src = anime.gif; });
   card.addEventListener('mouseleave', () => { img.src = anime.image; });
 
+  // Append text content and button to card
   card.appendChild(createTextElement('h3', anime.title));
   card.appendChild(img);
   card.appendChild(createTextElement('p', `<strong>Rating:</strong> ${anime.rating}`));
@@ -268,32 +264,37 @@ function createAnimeCard(anime) {
   return card;
 }
 
+// CREATE TEXT ELEMENT WITH HTML INSIDE
 function createTextElement(tag, html) {
   const el = document.createElement(tag);
   el.innerHTML = html;
   return el;
 }
 
-// DISPLAY FUNCTION
+// DISPLAY LIST OF ANIME OBJECTS IN THE CONTAINER
 function displayList(data = null) {
   const container = document.getElementById('anime-list');
-  container.innerHTML = '';
+  container.innerHTML = ''; // Clear existing cards
 
-  const list = (data || getCurrentList());
-  if(list.length === 0){
+  const list = data || getCurrentList();
+  if (list.length === 0) {
+    // Show "No results" message when list is empty
     const msg = document.createElement('p');
     msg.innerText = "No results! :(";
     msg.className = "no-results";
     container.appendChild(msg);
     return;
   }
+
+  // Add each anime as a card to the display
   list.forEach(anime => {
     const card = createAnimeCard(anime);
     container.appendChild(card);
-    setTimeout(() => card.classList.add('show'), 10);
+    setTimeout(() => card.classList.add('show'), 10); // Animation effect
   });
 }
 
+// INITIAL RENDER ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
   displayList();
 });
