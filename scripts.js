@@ -158,7 +158,11 @@ function addToWatchlist(animeTitle) {
 
 function removeFromWatchlist(animeTitle) {
   myWatchlist = myWatchlist.filter(anime => anime.title !== animeTitle);
-  updateCardUI(animeTitle);
+  if(currentList == "all"){ // improved remove logic!
+    updateCardUI(animeTitle);
+    return;
+  }
+  displayList();
 }
 
 function updateCardUI(animeTitle) {
@@ -274,7 +278,16 @@ function createTextElement(tag, html) {
 function displayList(data = null) {
   const container = document.getElementById('anime-list');
   container.innerHTML = '';
-  (data || getCurrentList()).forEach(anime => {
+
+  const list = (data || getCurrentList());
+  if(list.length === 0){
+    const msg = document.createElement('p');
+    msg.innerText = "No results! :(";
+    msg.className = "no-results";
+    container.appendChild(msg);
+    return;
+  }
+  list.forEach(anime => {
     const card = createAnimeCard(anime);
     container.appendChild(card);
     setTimeout(() => card.classList.add('show'), 10);
