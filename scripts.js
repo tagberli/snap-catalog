@@ -137,9 +137,9 @@ function switchList(listType) {
   const header = document.querySelector("header");
   const pageTitle = document.getElementById("page-title");
 
-  if (listType === 'all') {
+  if (listType === 'all') { // all anime list header color
     pageTitle.innerText = "Anime Catalog";
-    header.style.backgroundColor = "#1F1F1F"; //
+    header.style.backgroundColor = "#FFFFFF"; //
   } else {
     pageTitle.innerText = "My Watchlist";
     header.style.backgroundColor = "#4A90E2";
@@ -148,20 +148,35 @@ function switchList(listType) {
   displayList();
 }
 
-
 function addToWatchlist(animeTitle) {
   const anime = animeList.find(a => a.title === animeTitle);
   if (!myWatchlist.some(a => a.title === animeTitle)) {
     myWatchlist.push(anime);
   }
-  displayList();
+  updateCardUI(animeTitle);
 }
 
 function removeFromWatchlist(animeTitle) {
   myWatchlist = myWatchlist.filter(anime => anime.title !== animeTitle);
-  displayList();
+  updateCardUI(animeTitle);
 }
 
+function updateCardUI(animeTitle) {
+  const cards = document.querySelectorAll('.anime-card');
+  cards.forEach(card => {
+    const title = card.querySelector('h3')?.innerText;
+    if (title === animeTitle) {
+      const button = card.querySelector('button');
+      const inWatchlist = myWatchlist.some(a => a.title === animeTitle);
+
+      button.innerText = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
+      button.className = inWatchlist ? 'remove' : '';
+      button.onclick = () => {
+        inWatchlist ? removeFromWatchlist(animeTitle) : addToWatchlist(animeTitle);
+      };
+    }
+  });
+}
 
 
 
@@ -199,84 +214,70 @@ function filterByGenre(genre) {
 
 
 // SEARCH OPERATION
+// improved the search function by splitting the title check each word for partial matches
 document.getElementById("searchBar").addEventListener("input", () => {
   const list = getCurrentList();
-  const query = document.getElementById("searchBar").value.toLowerCase();
-  if(query.trim() === ""){
+  const query = document.getElementById("searchBar").value.toLowerCase().trim();
+
+  if (query === "") {
     displayList();
-  }else{
-    const filtered = list.filter(anime => anime.title.toLowerCase().includes(query));
-    filtered.sort((a, b) => a.title.localeCompate(b.title));
+  } else {
+    const filtered = list.filter(anime => {
+      const words = anime.title.toLowerCase().split(/\s+/); // split by spaces
+      return words.some(word => word.includes(query));
+    });
+
+    filtered.sort((a, b) => a.title.localeCompare(b.title));
     displayList(filtered);
   }
 });
 
 
 
-// DISPLAY HELPER FUNCTION
+
+// DISPLAY HELPER FUNCTIONS
+function createAnimeCard(anime) {
+  const card = document.createElement('div');
+  card.className = 'anime-card';
+
+  const inWatchlist = myWatchlist.some(a => a.title === anime.title);
+  const button = document.createElement('button');
+  button.className = inWatchlist ? 'remove' : '';
+  button.innerText = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
+  button.onclick = () => inWatchlist ? removeFromWatchlist(anime.title) : addToWatchlist(anime.title);
+
+  const img = document.createElement('img');
+  img.src = anime.image;
+  img.alt = anime.title;
+  img.className = 'anime-img';
+  card.addEventListener('mouseenter', () => { img.src = anime.gif; });
+  card.addEventListener('mouseleave', () => { img.src = anime.image; });
+
+  card.appendChild(createTextElement('h3', anime.title));
+  card.appendChild(img);
+  card.appendChild(createTextElement('p', `<strong>Rating:</strong> ${anime.rating}`));
+  card.appendChild(createTextElement('p', `<strong>Popularity:</strong> ${anime.popularity}`));
+  card.appendChild(createTextElement('p', `<strong>Genre:</strong> ${anime.genre}`));
+  card.appendChild(createTextElement('p', `<strong>Episodes:</strong> ${anime.total_episodes}`));
+  card.appendChild(button);
+
+  return card;
+}
+
+function createTextElement(tag, html) {
+  const el = document.createElement(tag);
+  el.innerHTML = html;
+  return el;
+}
+
+// DISPLAY FUNCTION
 function displayList(data = null) {
   const container = document.getElementById('anime-list');
   container.innerHTML = '';
-  const list = data || getCurrentList();
-
-  list.forEach(anime => {
-    const card = document.createElement('div');
-    card.className = 'anime-card';
-
-    const inWatchlist = myWatchlist.some(a => a.title === anime.title);
-    const buttonText = inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
-    const buttonClass = inWatchlist ? 'remove' : '';
-    const buttonAction = inWatchlist ? `removeFromWatchlist('${anime.title}')` : `addToWatchlist('${anime.title}')`;
-
-    // Create image element
-    const img = document.createElement('img');
-    img.src = anime.image; // Default image
-    img.alt = anime.title;
-    img.className = 'anime-img';
-
-    // Hover effect to switch image to GIF
-    img.addEventListener('mouseenter', () => {
-      img.src = anime.gif; // Replace with GIF on hover
-    });
-
-    img.addEventListener('mouseleave', () => {
-      img.src = anime.image; // Revert to original image when hover ends
-    });
-
-    // Insert title
-    const title = document.createElement('h3');
-    title.innerText = anime.title;
-
-    // Add other anime details
-    const rating = document.createElement('p');
-    rating.innerHTML = `<strong>Rating:</strong> ${anime.rating}`;
-
-    const popularity = document.createElement('p');
-    popularity.innerHTML = `<strong>Popularity:</strong> ${anime.popularity}`;
-
-    const genre = document.createElement('p');
-    genre.innerHTML = `<strong>Genre:</strong> ${anime.genre}`;
-
-    const episodes = document.createElement('p');
-    episodes.innerHTML = `<strong>Number of Episodes:</strong> ${anime.total_episodes}`;
-
-    // Create and append the button
-    const button = document.createElement('button');
-    button.className = buttonClass;
-    button.onclick = () => eval(buttonAction); // Dynamically call the add/remove function
-    button.innerText = buttonText;
-
-    // Append everything to the card
-    card.appendChild(title);
-    card.appendChild(img);
-    card.appendChild(rating);
-    card.appendChild(popularity);
-    card.appendChild(genre);
-    card.appendChild(episodes);
-    card.appendChild(button);
-
-    // Add the card to the container
+  (data || getCurrentList()).forEach(anime => {
+    const card = createAnimeCard(anime);
     container.appendChild(card);
+    setTimeout(() => card.classList.add('show'), 10);
   });
 }
 
