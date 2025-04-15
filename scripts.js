@@ -75,6 +75,7 @@ function switchList(listType) {
   displayList();
 }
 
+
 function addToWatchlist(animeTitle) {
   const anime = animeList.find(a => a.title === animeTitle);
   if (!myWatchlist.some(a => a.title === animeTitle)) {
